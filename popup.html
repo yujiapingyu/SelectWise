@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SelectWise</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .instruction {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .feature-list {
+      list-style: none;
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    .feature-list li:before {
+      content: "✓ ";
+      margin-right: 8px;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">⚡</div>
+    <h1 id="popup-title">SelectWise</h1>
+    <p class="subtitle" id="popup-subtitle">AI-Powered Text Analysis</p>
+  </div>
+
+  <div class="content">
+    <p class="instruction" id="popup-instruction">
+      Select any text on a webpage to analyze it with AI!
+    </p>
+    <ul class="feature-list">
+      <li id="feature-1">Smart translations</li>
+      <li id="feature-2">Deep analysis</li>
+      <li id="feature-3">Example sentences</li>
+      <li id="feature-4">Save to Notion</li>
+    </ul>
+  </div>
+
+  <button class="button" id="settingsBtn">Open Settings</button>
+
+  <div class="footer" id="popup-footer">
+    Made with ❤️ for language learners
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
