@@ -485,6 +485,14 @@ async function handleImportConfig(e) {
       throw new Error('Invalid configuration file');
     }
     
+    // Ensure all databases have template field (for backward compatibility)
+    if (importData.settings.notionDatabases) {
+      importData.settings.notionDatabases = importData.settings.notionDatabases.map(db => ({
+        ...db,
+        template: db.template || 'default' // Add default template if missing
+      }));
+    }
+    
     // Restore settings
     await chrome.storage.sync.set(importData.settings);
     
