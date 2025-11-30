@@ -461,34 +461,79 @@ function getPanelStyles() {
       padding: 16px 24px;
       border-top: 1px solid #e5e7eb;
       display: flex;
+      flex-direction: column;
       gap: 12px;
+    }
+    
+    .database-select {
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
+      background: white;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: all 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    
+    .database-select:hover {
+      border-color: #667eea;
+      background-color: #f9fafb;
+    }
+    
+    .database-select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .database-select option {
+      padding: 12px;
+      font-size: 14px;
+      background: white;
+      color: #1a1a1a;
     }
     
     .btn {
       flex: 1;
-      padding: 10px 16px;
+      padding: 12px 20px;
       border: none;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
     }
     
     .btn-primary {
-      background: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
     
     .btn-primary:hover {
-      background: #5568d3;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
     }
     
     .btn-primary:disabled {
       background: #9ca3af;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
     
     .save-status {
@@ -532,7 +577,13 @@ function getPanelHTML() {
       </div>
     </div>
     <div class="panel-footer" id="panelFooter" style="display: none;">
-      <button class="btn btn-primary" id="saveToNotion">${t('save_to_notion', currentUILang)}</button>
+      <select class="database-select" id="databaseSelect">
+        <!-- Options will be populated dynamically -->
+      </select>
+      <button class="btn btn-primary" id="saveToNotion">
+        <span>📝</span>
+        <span>${t('save_to_notion', currentUILang)}</span>
+      </button>
       <div class="save-status" id="saveStatus"></div>
     </div>
   `;
@@ -639,9 +690,43 @@ function updatePanelWithResults(data) {
   // Store the data for saving to Notion
   analysisPanel.dataset.analysisData = JSON.stringify(data);
   
-  // Show footer with save button
+  // Populate database selector and show footer
+  populateDatabaseSelector();
   footer.style.display = 'flex';
   footer.style.flexDirection = 'column';
+}
+
+async function populateDatabaseSelector() {
+  if (!analysisPanel) return;
+  
+  const shadow = analysisPanel.shadowRoot;
+  const select = shadow.getElementById('databaseSelect');
+  const footer = shadow.getElementById('panelFooter');
+  
+  if (!select) return;
+  
+  // Get databases and last used database
+  const settings = await chrome.storage.sync.get(['notionDatabases', 'lastUsedDatabaseId']);
+  const databases = settings.notionDatabases || [];
+  
+  if (databases.length === 0) {
+    footer.style.display = 'none';
+    return;
+  }
+  
+  // Find default or last used database
+  let selectedId = settings.lastUsedDatabaseId;
+  if (!selectedId || !databases.find(db => db.id === selectedId)) {
+    const defaultDb = databases.find(db => db.isDefault);
+    selectedId = defaultDb ? defaultDb.id : databases[0].id;
+  }
+  
+  // Populate options
+  select.innerHTML = databases.map(db => `
+    <option value="${db.id}" ${db.id === selectedId ? 'selected' : ''}>
+      ${escapeHtml(db.name)}${db.isDefault ? ` (${t('default_database', currentUILang)})` : ''}
+    </option>
+  `).join('');
 }
 
 function updatePanelWithError(error) {
@@ -663,11 +748,13 @@ function handleSaveToNotion() {
   const shadow = analysisPanel.shadowRoot;
   const statusEl = shadow.getElementById('saveStatus');
   const saveBtn = shadow.getElementById('saveToNotion');
+  const selectEl = shadow.getElementById('databaseSelect');
   
   const dataStr = analysisPanel.dataset.analysisData;
   if (!dataStr) return;
   
   const data = JSON.parse(dataStr);
+  const selectedDatabaseId = selectEl ? selectEl.value : null;
   
   saveBtn.disabled = true;
   statusEl.textContent = t('saving', currentUILang);
@@ -676,12 +763,18 @@ function handleSaveToNotion() {
   chrome.runtime.sendMessage({
     action: 'saveToNotion',
     data: data,
-    url: window.location.href
-  }, (response) => {
+    url: window.location.href,
+    databaseId: selectedDatabaseId
+  }, async (response) => {
     saveBtn.disabled = false;
     
     if (response.success) {
-      statusEl.textContent = '✓ ' + t('saved_successfully', currentUILang);
+      // Save the last used database ID
+      if (selectedDatabaseId) {
+        await chrome.storage.sync.set({ lastUsedDatabaseId: selectedDatabaseId });
+      }
+      
+      statusEl.textContent = t('saved_success', currentUILang);
       statusEl.className = 'save-status success show';
     } else {
       statusEl.textContent = '✗ ' + (response.error || t('failed_to_save', currentUILang));

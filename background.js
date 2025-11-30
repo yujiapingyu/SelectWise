@@ -10,8 +10,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'saveToNotion') {
-    saveToNotion(request.data, request.url)
+    saveToNotion(request.data, request.url, request.databaseId)
       .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Will respond asynchronously
+  }
+  
+  if (request.action === 'getNotionDatabaseName') {
+    getNotionDatabaseName(request.token, request.databaseId)
+      .then(name => sendResponse({ success: true, name }))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Will respond asynchronously
   }
@@ -160,11 +167,24 @@ Return ONLY the JSON object, no explanations or markdown.`;
 }
 
 // Save to Notion
-async function saveToNotion(data, url) {
+async function saveToNotion(data, url, databaseId) {
   // Get Notion settings
-  const settings = await chrome.storage.sync.get(['notionToken', 'notionDatabaseId', 'uiLanguage']);
+  const settings = await chrome.storage.sync.get(['notionDatabases', 'uiLanguage']);
   
-  if (!settings.notionToken || !settings.notionDatabaseId) {
+  if (!settings.notionDatabases || settings.notionDatabases.length === 0) {
+    const lang = settings.uiLanguage || 'en';
+    const errorMsg = getNotionConfigError(lang);
+    throw new Error(errorMsg);
+  }
+  
+  // Find the database to use
+  let database = settings.notionDatabases.find(db => db.id === databaseId);
+  if (!database) {
+    // Fallback to default or first database
+    database = settings.notionDatabases.find(db => db.isDefault) || settings.notionDatabases[0];
+  }
+  
+  if (!database || !database.token || !database.databaseId) {
     const lang = settings.uiLanguage || 'en';
     const errorMsg = getNotionConfigError(lang);
     throw new Error(errorMsg);
@@ -226,7 +246,7 @@ async function saveToNotion(data, url) {
   
   const requestBody = {
     parent: {
-      database_id: settings.notionDatabaseId
+      database_id: database.databaseId
     },
     properties: properties
   };
@@ -235,7 +255,7 @@ async function saveToNotion(data, url) {
     const response = await fetch(notionUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${settings.notionToken}`,
+        'Authorization': `Bearer ${database.token}`,
         'Content-Type': 'application/json',
         'Notion-Version': '2022-06-28'
       },
@@ -303,4 +323,37 @@ function getNotionSaveError(lang) {
 ✓ La base de données contient-elle toutes les propriétés requises ?`
   };
   return messages[lang] || messages['en'];
+}
+
+// Get Notion database name
+async function getNotionDatabaseName(token, databaseId) {
+  const notionUrl = `https://api.notion.com/v1/databases/${databaseId}`;
+  
+  try {
+    const response = await fetch(notionUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Notion-Version': '2022-06-28'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Notion API Error:', errorData);
+      throw new Error('Failed to fetch database information');
+    }
+    
+    const result = await response.json();
+    
+    // Extract database name from title
+    if (result.title && result.title.length > 0) {
+      return result.title.map(t => t.plain_text).join('');
+    }
+    
+    return 'Untitled Database';
+  } catch (error) {
+    console.error('Get Database Name Error:', error);
+    throw new Error('Failed to fetch database name');
+  }
 }

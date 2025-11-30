@@ -1,10 +1,12 @@
 // Load saved settings
+let currentDatabases = [];
+let editingDatabaseId = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const settings = await chrome.storage.sync.get([
     'geminiApiKey',
     'targetLanguage',
-    'notionToken',
-    'notionDatabaseId',
+    'notionDatabases',
     'uiLanguage'
   ]);
 
@@ -18,13 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('targetLanguage').value = 'English';
   }
 
-  if (settings.notionToken) {
-    document.getElementById('notionToken').value = settings.notionToken;
-  }
-
-  if (settings.notionDatabaseId) {
-    document.getElementById('notionDatabaseId').value = settings.notionDatabaseId;
-  }
+  // Load Notion databases
+  currentDatabases = settings.notionDatabases || [];
+  renderDatabasesList();
 
   if (settings.uiLanguage) {
     document.getElementById('uiLanguage').value = settings.uiLanguage;
@@ -42,8 +40,6 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
 
   const geminiApiKey = document.getElementById('geminiApiKey').value.trim();
   const targetLanguage = document.getElementById('targetLanguage').value;
-  const notionToken = document.getElementById('notionToken').value.trim();
-  const notionDatabaseId = document.getElementById('notionDatabaseId').value.trim();
   const uiLanguage = document.getElementById('uiLanguage').value;
 
   if (!geminiApiKey) {
@@ -55,8 +51,7 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
     await chrome.storage.sync.set({
       geminiApiKey,
       targetLanguage,
-      notionToken,
-      notionDatabaseId,
+      notionDatabases: currentDatabases,
       uiLanguage
     });
 
@@ -120,23 +115,227 @@ function updateUILanguage(lang) {
 
   // Notion section
   document.querySelector('.section-title').textContent = t('notion_integration', lang);
-  document.querySelector('label[for="notionToken"]').textContent = t('notion_token', lang);
-  document.querySelector('#notionToken').placeholder = 'secret_xxxxxxxxxxxxxx';
-  document.querySelectorAll('.helper-text')[3].innerHTML = `
-    ${t('notion_token_helper', lang)} <a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>
-  `;
-
-  document.querySelector('label[for="notionDatabaseId"]').textContent = t('notion_database_id', lang);
-  document.querySelector('#notionDatabaseId').placeholder = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-  document.querySelectorAll('.helper-text')[4].textContent = t('notion_database_id_helper', lang);
   
-  // Add database structure info if it exists
-  const structureHelperText = document.querySelectorAll('.helper-text')[5];
-  if (structureHelperText) {
-    structureHelperText.textContent = t('notion_database_structure', lang);
-  }
-
   // Buttons
   document.querySelector('.btn-primary').textContent = t('save_settings', lang);
   document.querySelector('#resetBtn').textContent = t('reset', lang);
+  document.getElementById('addDatabaseBtn').textContent = '+ ' + t('add_database', lang);
+  
+  // Render databases list with new language
+  renderDatabasesList();
+}
+
+// Database Management Functions
+async function renderDatabasesList() {
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  const container = document.getElementById('databasesList');
+  
+  if (currentDatabases.length === 0) {
+    container.innerHTML = `
+      <div class="no-databases">
+        ${t('no_databases', lang)}
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = currentDatabases.map(db => `
+    <div class="database-card ${db.isDefault ? 'default' : ''}" data-id="${db.id}">
+      <div class="database-header">
+        <div class="database-title">
+          ${escapeHtml(db.name)}
+          ${db.isDefault ? `<span class="default-badge">${t('default_database', lang)}</span>` : ''}
+        </div>
+        <div class="database-actions">
+          ${!db.isDefault ? `<button class="btn-small btn-set-default" data-action="setDefault" data-db-id="${db.id}">${t('set_default', lang)}</button>` : ''}
+          <button class="btn-small btn-edit" data-action="edit" data-db-id="${db.id}">${t('edit_database', lang)}</button>
+          <button class="btn-small btn-delete" data-action="delete" data-db-id="${db.id}">${t('delete_database', lang)}</button>
+        </div>
+      </div>
+      <div class="database-info">
+        ID: ${db.databaseId.substring(0, 8)}...
+      </div>
+    </div>
+  `).join('');
+  
+  // Add event listeners to buttons
+  container.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      const dbId = btn.dataset.dbId;
+      
+      if (action === 'edit') {
+        editDatabase(dbId);
+      } else if (action === 'delete') {
+        await deleteDatabase(dbId);
+      } else if (action === 'setDefault') {
+        await setDefaultDatabase(dbId);
+      }
+    });
+  });
+}
+
+// Add database button
+document.getElementById('addDatabaseBtn').addEventListener('click', () => {
+  editingDatabaseId = null;
+  showDatabaseModal();
+});
+
+// Show database modal
+async function showDatabaseModal() {
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  
+  const modal = document.getElementById('databaseModal');
+  const title = document.getElementById('modalTitle');
+  const tokenInput = document.getElementById('modalToken');
+  const databaseIdInput = document.getElementById('modalDatabaseId');
+  const nameInput = document.getElementById('modalDatabaseName');
+  
+  if (editingDatabaseId) {
+    const db = currentDatabases.find(d => d.id === editingDatabaseId);
+    title.textContent = t('edit_database', lang);
+    tokenInput.value = db.token;
+    databaseIdInput.value = db.databaseId;
+    nameInput.value = db.name;
+  } else {
+    title.textContent = t('add_database', lang);
+    tokenInput.value = '';
+    databaseIdInput.value = '';
+    nameInput.value = '';
+  }
+  
+  modal.classList.add('show');
+}
+
+// Close modal
+document.getElementById('modalCancel').addEventListener('click', () => {
+  document.getElementById('databaseModal').classList.remove('show');
+});
+
+// Fetch database name when token and ID are entered
+async function fetchDatabaseName() {
+  const token = document.getElementById('modalToken').value.trim();
+  const databaseId = document.getElementById('modalDatabaseId').value.trim();
+  const nameInput = document.getElementById('modalDatabaseName');
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  
+  if (token && databaseId && databaseId.length === 32) {
+    nameInput.value = t('fetching_name', lang);
+    
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getNotionDatabaseName',
+        token: token,
+        databaseId: databaseId
+      });
+      
+      if (response.success) {
+        nameInput.value = response.name;
+      } else {
+        nameInput.value = 'Error: ' + response.error;
+      }
+    } catch (error) {
+      nameInput.value = 'Error: ' + error.message;
+    }
+  }
+}
+
+document.getElementById('modalToken').addEventListener('blur', fetchDatabaseName);
+document.getElementById('modalDatabaseId').addEventListener('blur', fetchDatabaseName);
+
+// Save database
+document.getElementById('modalSave').addEventListener('click', async () => {
+  const token = document.getElementById('modalToken').value.trim();
+  const databaseId = document.getElementById('modalDatabaseId').value.trim();
+  const name = document.getElementById('modalDatabaseName').value.trim();
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  
+  if (!token || !databaseId) {
+    showMessage(t('please_enter_api_key', lang), 'error');
+    return;
+  }
+  
+  if (databaseId.length !== 32) {
+    showMessage('Database ID must be 32 characters', 'error');
+    return;
+  }
+  
+  if (editingDatabaseId) {
+    // Update existing database
+    const index = currentDatabases.findIndex(d => d.id === editingDatabaseId);
+    currentDatabases[index] = {
+      ...currentDatabases[index],
+      token,
+      databaseId,
+      name: name || 'Untitled Database'
+    };
+  } else {
+    // Add new database
+    const newDb = {
+      id: Date.now().toString(),
+      token,
+      databaseId,
+      name: name || 'Untitled Database',
+      isDefault: currentDatabases.length === 0 // First database is default
+    };
+    currentDatabases.push(newDb);
+  }
+  
+  // Save to storage
+  await chrome.storage.sync.set({ notionDatabases: currentDatabases });
+  
+  // Close modal and refresh list
+  document.getElementById('databaseModal').classList.remove('show');
+  renderDatabasesList();
+  showMessage(t('settings_saved', lang), 'success');
+});
+
+// Edit database
+function editDatabase(id) {
+  editingDatabaseId = id;
+  showDatabaseModal();
+}
+
+// Delete database
+async function deleteDatabase(id) {
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  
+  if (confirm(t('delete_confirm', lang))) {
+    currentDatabases = currentDatabases.filter(d => d.id !== id);
+    
+    // If deleted database was default, make first one default
+    if (currentDatabases.length > 0 && !currentDatabases.some(d => d.isDefault)) {
+      currentDatabases[0].isDefault = true;
+    }
+    
+    await chrome.storage.sync.set({ notionDatabases: currentDatabases });
+    renderDatabasesList();
+    showMessage(t('settings_saved', lang), 'success');
+  }
+}
+
+// Set default database
+async function setDefaultDatabase(id) {
+  currentDatabases.forEach(db => {
+    db.isDefault = db.id === id;
+  });
+  
+  await chrome.storage.sync.set({ notionDatabases: currentDatabases });
+  renderDatabasesList();
+  
+  const settings = await chrome.storage.sync.get(['uiLanguage']);
+  const lang = settings.uiLanguage || 'en';
+  showMessage(t('settings_saved', lang), 'success');
+}
+
+// Helper function
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }

@@ -59,7 +59,21 @@ const translations = {
     'notion_error_check_db': 'Check: Is the Database ID correct? (32 characters)',
     'notion_error_check_share': 'Confirm: Is the database shared with the Integration?',
     'notion_error_check_props': 'Verify: Does the database contain all required properties?',
-    'notion_configure': 'Please configure Notion integration in settings'
+    'notion_configure': 'Please configure Notion integration in settings',
+    
+    // Notion database management
+    'notion_databases': 'Notion Databases',
+    'add_database': 'Add Database',
+    'edit_database': 'Edit',
+    'delete_database': 'Delete',
+    'set_default': 'Set as Default',
+    'default_database': 'Default',
+    'database_name': 'Database Name',
+    'fetching_name': 'Fetching name...',
+    'delete_confirm': 'Are you sure you want to delete this database?',
+    'no_databases': 'No databases configured. Click "Add Database" to add one.',
+    'select_database': 'Select Database',
+    'last_used': 'Last Used'
   },
   
   'zh-CN': {
@@ -121,7 +135,21 @@ const translations = {
     'notion_error_check_db': '检查：Database ID 是否正确？（32位字符）',
     'notion_error_check_share': '确认：数据库已共享给 Integration？',
     'notion_error_check_props': '验证：数据库包含所有必需的属性？',
-    'notion_configure': '请在设置中配置 Notion 集成'
+    'notion_configure': '请在设置中配置 Notion 集成',
+    
+    // Notion database management
+    'notion_databases': 'Notion 数据库',
+    'add_database': '添加数据库',
+    'edit_database': '编辑',
+    'delete_database': '删除',
+    'set_default': '设为默认',
+    'default_database': '默认',
+    'database_name': '数据库名称',
+    'fetching_name': '获取名称中...',
+    'delete_confirm': '确定要删除这个数据库吗？',
+    'no_databases': '未配置数据库。点击"添加数据库"以添加。',
+    'select_database': '选择数据库',
+    'last_used': '上次使用'
   },
   
   'ja': {
@@ -183,7 +211,21 @@ const translations = {
     'notion_error_check_db': '確認：Database ID は正しいですか？（32文字）',
     'notion_error_check_share': '確認：データベースは Integration と共有されていますか？',
     'notion_error_check_props': '確認：データベースに必要なプロパティがすべて含まれていますか？',
-    'notion_configure': '設定で Notion 統合を構成してください'
+    'notion_configure': '設定で Notion 統合を構成してください',
+    
+    // Notion database management
+    'notion_databases': 'Notion データベース',
+    'add_database': 'データベースを追加',
+    'edit_database': '編集',
+    'delete_database': '削除',
+    'set_default': 'デフォルトに設定',
+    'default_database': 'デフォルト',
+    'database_name': 'データベース名',
+    'fetching_name': '名前を取得中...',
+    'delete_confirm': 'このデータベースを削除してもよろしいですか？',
+    'no_databases': 'データベースが構成されていません。「データベースを追加」をクリックしてください。',
+    'select_database': 'データベースを選択',
+    'last_used': '最後に使用'
   },
   
   'es': {
@@ -244,7 +286,21 @@ const translations = {
     'notion_error_check_db': 'Verificar: ¿El Database ID es correcto? (32 caracteres)',
     'notion_error_check_share': 'Confirmar: ¿La base de datos está compartida con la Integration?',
     'notion_error_check_props': 'Verificar: ¿La base de datos contiene todas las propiedades requeridas?',
-    'notion_configure': 'Por favor configure la integración de Notion en la configuración'
+    'notion_configure': 'Por favor configure la integración de Notion en la configuración',
+    
+    // Notion database management
+    'notion_databases': 'Bases de Datos de Notion',
+    'add_database': 'Agregar Base de Datos',
+    'edit_database': 'Editar',
+    'delete_database': 'Eliminar',
+    'set_default': 'Establecer como Predeterminada',
+    'default_database': 'Predeterminada',
+    'database_name': 'Nombre de la Base de Datos',
+    'fetching_name': 'Obteniendo nombre...',
+    'delete_confirm': '¿Está seguro de que desea eliminar esta base de datos?',
+    'no_databases': 'No hay bases de datos configuradas. Haga clic en "Agregar Base de Datos" para añadir una.',
+    'select_database': 'Seleccionar Base de Datos',
+    'last_used': 'Usado Recientemente'
   },
   
   'fr': {
@@ -306,7 +362,21 @@ const translations = {
     'notion_error_check_db': 'Vérifier : Le Database ID est-il correct ? (32 caractères)',
     'notion_error_check_share': 'Confirmer : La base de données est-elle partagée avec l\'Integration ?',
     'notion_error_check_props': 'Vérifier : La base de données contient-elle toutes les propriétés requises ?',
-    'notion_configure': 'Veuillez configurer l\'intégration Notion dans les paramètres'
+    'notion_configure': 'Veuillez configurer l\'intégration Notion dans les paramètres',
+    
+    // Notion database management
+    'notion_databases': 'Bases de Données Notion',
+    'add_database': 'Ajouter une Base de Données',
+    'edit_database': 'Modifier',
+    'delete_database': 'Supprimer',
+    'set_default': 'Définir par Défaut',
+    'default_database': 'Par Défaut',
+    'database_name': 'Nom de la Base de Données',
+    'fetching_name': 'Récupération du nom...',
+    'delete_confirm': 'Êtes-vous sûr de vouloir supprimer cette base de données ?',
+    'no_databases': 'Aucune base de données configurée. Cliquez sur "Ajouter une Base de Données" pour en ajouter une.',
+    'select_database': 'Sélectionner une Base de Données',
+    'last_used': 'Dernière Utilisation'
   }
 };
 

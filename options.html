@@ -12,7 +12,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', 'WenQuanYi Micro Hei', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 40px 20px;
@@ -166,6 +166,159 @@
     .status-message.show {
       display: block;
     }
+    
+    /* Database Management Styles */
+    .database-list {
+      margin-top: 16px;
+    }
+    
+    .database-card {
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    
+    .database-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+    
+    .database-card.default {
+      border-color: #667eea;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    }
+    
+    .database-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .database-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .default-badge {
+      background: #667eea;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .database-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    
+    .btn-edit {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-edit:hover {
+      background: #2563eb;
+    }
+    
+    .btn-delete {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn-delete:hover {
+      background: #dc2626;
+    }
+    
+    .btn-set-default {
+      background: #10b981;
+      color: white;
+    }
+    
+    .btn-set-default:hover {
+      background: #059669;
+    }
+    
+    .database-info {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    
+    .no-databases {
+      text-align: center;
+      padding: 32px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    
+    .btn-add-database {
+      width: 100%;
+      margin-top: 12px;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .modal-buttons button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -225,42 +378,68 @@
       <div class="divider"></div>
 
       <!-- Notion Integration Section -->
-      <div class="section-title">Notion Integration</div>
+      <div class="section-title">📝 Notion Integration (Optional)</div>
 
-      <div class="form-group">
-        <label for="notionToken">Notion Integration Token</label>
-        <input 
-          type="password" 
-          id="notionToken" 
-          placeholder="secret_xxxxxxxxxxxxxx"
-        >
-        <p class="helper-text">
-          <a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>
-        </p>
+      <!-- Notion Databases List -->
+      <div id="databasesList" class="database-list">
+        <!-- Databases will be inserted here by JavaScript -->
       </div>
 
-      <div class="form-group">
-        <label for="notionDatabaseId">Notion Database ID</label>
-        <input 
-          type="text" 
-          id="notionDatabaseId" 
-          placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-        >
-        <p class="helper-text">
-          <!-- Text will be set by options.js -->
-        </p>
-        <p class="helper-text" style="margin-top: 8px; font-size: 12px; color: #6b7280;">
-          <!-- Database structure text will be set by options.js -->
-        </p>
-      </div>
+      <button type="button" id="addDatabaseBtn" class="btn-primary btn-add-database">
+        + Add Database
+      </button>
 
-      <div class="button-group">
-        <button type="submit" class="btn-primary"><!-- Set by options.js --></button>
-        <button type="button" id="resetBtn" class="btn-secondary"><!-- Set by options.js --></button>
+      <div class="button-group" style="margin-top: 32px;">
+        <button type="submit" class="btn-primary">Save Settings</button>
+        <button type="button" id="resetBtn" class="btn-secondary">Reset</button>
       </div>
 
       <div id="statusMessage" class="status-message"></div>
     </form>
+  </div>
+
+  <!-- Add/Edit Database Modal -->
+  <div id="databaseModal" class="modal">
+    <div class="modal-content">
+      <h2 class="modal-header" id="modalTitle">Add Database</h2>
+      
+      <div class="form-group">
+        <label for="modalToken">Notion Integration Token <span class="required">*</span></label>
+        <input 
+          type="password" 
+          id="modalToken" 
+          placeholder="secret_xxxxxxxxxxxxxx"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="modalDatabaseId">Notion Database ID <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="modalDatabaseId" 
+          placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="modalDatabaseName">Database Name</label>
+        <input 
+          type="text" 
+          id="modalDatabaseName" 
+          placeholder="My Vocabulary Database"
+          readonly
+          style="background: #f3f4f6;"
+        >
+        <p class="helper-text" style="font-size: 12px;">Auto-fetched from Notion</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="button" id="modalCancel" class="btn-secondary">Cancel</button>
+        <button type="button" id="modalSave" class="btn-primary">Save Database</button>
+      </div>
+    </div>
   </div>
 
   <script src="i18n.js"></script>
