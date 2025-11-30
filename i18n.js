@@ -103,7 +103,14 @@ const translations = {
     'import_config': 'Import Config',
     'config_exported': 'Configuration exported successfully!',
     'config_imported': 'Configuration imported successfully!',
-    'invalid_config': 'Invalid configuration file'
+    'invalid_config': 'Invalid configuration file',
+    
+    // Voice/Speech
+    'play_audio': 'Play Audio',
+    'pause_audio': 'Pause',
+    'stop_audio': 'Stop',
+    'playing': 'Playing...',
+    'speech_not_supported': 'Speech synthesis not supported in this browser'
   },
   
   'zh-CN': {
@@ -209,7 +216,14 @@ const translations = {
     'import_config': '导入配置',
     'config_exported': '配置导出成功！',
     'config_imported': '配置导入成功！',
-    'invalid_config': '配置文件无效'
+    'invalid_config': '配置文件无效',
+    
+    // Voice/Speech
+    'play_audio': '播放语音',
+    'pause_audio': '暂停',
+    'stop_audio': '停止',
+    'playing': '播放中...',
+    'speech_not_supported': '浏览器不支持语音合成'
   },
   
   'ja': {
@@ -315,7 +329,14 @@ const translations = {
     'import_config': '設定をインポート',
     'config_exported': '設定をエクスポートしました！',
     'config_imported': '設定をインポートしました！',
-    'invalid_config': '無効な設定ファイル'
+    'invalid_config': '無効な設定ファイル',
+    
+    // Voice/Speech
+    'play_audio': '音声再生',
+    'pause_audio': '一時停止',
+    'stop_audio': '停止',
+    'playing': '再生中...',
+    'speech_not_supported': 'このブラウザは音声合成をサポートしていません'
   },
   
   'es': {
@@ -420,7 +441,14 @@ const translations = {
     'import_config': 'Importar Configuración',
     'config_exported': '¡Configuración exportada con éxito!',
     'config_imported': '¡Configuración importada con éxito!',
-    'invalid_config': 'Archivo de configuración inválido'
+    'invalid_config': 'Archivo de configuración inválido',
+    
+    // Voice/Speech
+    'play_audio': 'Reproducir Audio',
+    'pause_audio': 'Pausar',
+    'stop_audio': 'Detener',
+    'playing': 'Reproduciendo...',
+    'speech_not_supported': 'Síntesis de voz no compatible con este navegador'
   },
   
   'fr': {
@@ -526,7 +554,14 @@ const translations = {
     'import_config': 'Importer la Configuration',
     'config_exported': 'Configuration exportée avec succès !',
     'config_imported': 'Configuration importée avec succès !',
-    'invalid_config': 'Fichier de configuration invalide'
+    'invalid_config': 'Fichier de configuration invalide',
+    
+    // Voice/Speech
+    'play_audio': 'Lire l’Audio',
+    'pause_audio': 'Pause',
+    'stop_audio': 'Arrêter',
+    'playing': 'Lecture en cours...',
+    'speech_not_supported': 'Synthèse vocale non prise en charge par ce navigateur'
   }
 };
 

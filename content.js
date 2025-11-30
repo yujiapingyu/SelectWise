@@ -238,11 +238,25 @@ function showAnalysisPanel() {
   
   document.body.appendChild(analysisPanel);
   
+  // Add click outside to close
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside);
+  }, 100);
+  
   // Add event listeners
   setupPanelEventListeners(shadow);
   
   // Make panel draggable
   makeDraggable(analysisPanel, shadow.querySelector('.panel-header'));
+}
+
+function handleClickOutside(e) {
+  if (analysisPanel && !analysisPanel.contains(e.target) && !floatingIcon?.contains(e.target)) {
+    stopSpeech();
+    analysisPanel.remove();
+    analysisPanel = null;
+    document.removeEventListener('click', handleClickOutside);
+  }
 }
 
 function getPanelStyles() {
@@ -360,6 +374,74 @@ function getPanelStyles() {
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .speak-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+    }
+    
+    .speak-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    .speak-btn:active {
+      transform: translateY(0);
+    }
+    
+    .speak-btn.speaking {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    .speak-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+    
+    .speak-icon {
+      font-size: 14px;
     }
     
     .original-text {
@@ -595,6 +677,9 @@ function setupPanelEventListeners(shadow) {
   
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
+      // Stop any playing speech
+      stopSpeech();
+      
       if (analysisPanel) {
         analysisPanel.remove();
         analysisPanel = null;
@@ -645,12 +730,24 @@ function updatePanelWithResults(data) {
   
   content.innerHTML = `
     <div class="section">
-      <div class="section-title">${t('original_text', currentUILang)}</div>
+      <div class="section-header">
+        <div class="section-label">${t('original_text', currentUILang)}</div>
+        <button class="speak-btn" data-text="${escapeHtml(data.original_text)}" data-lang="original" title="${t('play_audio', currentUILang)}">
+          <span class="speak-icon">🔊</span>
+          <span>${t('play_audio', currentUILang)}</span>
+        </button>
+      </div>
       <div class="original-text">${escapeHtml(data.original_text)}</div>
     </div>
     
     <div class="section">
-      <div class="section-title">${t('translation', currentUILang)}</div>
+      <div class="section-header">
+        <div class="section-label">${t('translation', currentUILang)}</div>
+        <button class="speak-btn" data-text="${escapeHtml(data.target_translation)}" data-lang="target" title="${t('play_audio', currentUILang)}">
+          <span class="speak-icon">🔊</span>
+          <span>${t('play_audio', currentUILang)}</span>
+        </button>
+      </div>
       <div class="translation">${escapeHtml(data.target_translation)}</div>
     </div>
     
@@ -689,6 +786,12 @@ function updatePanelWithResults(data) {
   
   // Store the data for saving to Notion
   analysisPanel.dataset.analysisData = JSON.stringify(data);
+  
+  // Add speak button listeners
+  const speakButtons = shadow.querySelectorAll('.speak-btn');
+  speakButtons.forEach(btn => {
+    btn.addEventListener('click', handleSpeak);
+  });
   
   // Populate database selector and show footer
   populateDatabaseSelector();
@@ -785,6 +888,121 @@ function handleSaveToNotion() {
       statusEl.classList.remove('show');
     }, 3000);
   });
+}
+
+// Speech synthesis for text-to-speech
+let currentSpeech = null;
+
+function handleSpeak(e) {
+  const btn = e.currentTarget;
+  const text = btn.dataset.text;
+  const langType = btn.dataset.lang;
+  
+  // Check if speech synthesis is supported
+  if (!('speechSynthesis' in window)) {
+    alert(t('speech_not_supported', currentUILang));
+    return;
+  }
+  
+  // If already speaking this button, stop it
+  if (btn.classList.contains('speaking')) {
+    stopSpeech();
+    return;
+  }
+  
+  // Stop any current speech
+  if (currentSpeech) {
+    stopSpeech();
+  }
+  
+  // Create speech utterance
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  // Detect and set language
+  chrome.storage.sync.get(['targetLanguage'], (result) => {
+    const targetLang = result.targetLanguage || 'English';
+    
+    // Map language to speech synthesis language codes
+    const langMap = {
+      'English': 'en-US',
+      '中文': 'zh-CN',
+      'Español': 'es-ES',
+      'Français': 'fr-FR',
+      'Deutsch': 'de-DE',
+      '日本語': 'ja-JP',
+      '한국어': 'ko-KR'
+    };
+    
+    // Set language based on original or target
+    if (langType === 'target') {
+      utterance.lang = langMap[targetLang] || 'en-US';
+    } else {
+      // Try to detect original language from text
+      utterance.lang = detectLanguage(text);
+    }
+    
+    // Set speech parameters
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    // Update button state
+    btn.classList.add('speaking');
+    const iconSpan = btn.querySelector('.speak-icon');
+    const textSpan = btn.querySelector('span:last-child');
+    if (iconSpan) iconSpan.textContent = '⏸️';
+    if (textSpan) textSpan.textContent = t('playing', currentUILang);
+    
+    // Handle speech events
+    utterance.onend = () => {
+      btn.classList.remove('speaking');
+      if (iconSpan) iconSpan.textContent = '🔊';
+      if (textSpan) textSpan.textContent = t('play_audio', currentUILang);
+      currentSpeech = null;
+    };
+    
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      btn.classList.remove('speaking');
+      if (iconSpan) iconSpan.textContent = '🔊';
+      if (textSpan) textSpan.textContent = t('play_audio', currentUILang);
+      currentSpeech = null;
+    };
+    
+    // Start speaking
+    currentSpeech = { utterance, button: btn };
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
+function stopSpeech() {
+  if (currentSpeech) {
+    window.speechSynthesis.cancel();
+    
+    const btn = currentSpeech.button;
+    btn.classList.remove('speaking');
+    const iconSpan = btn.querySelector('.speak-icon');
+    const textSpan = btn.querySelector('span:last-child');
+    if (iconSpan) iconSpan.textContent = '🔊';
+    if (textSpan) textSpan.textContent = t('play_audio', currentUILang);
+    
+    currentSpeech = null;
+  }
+}
+
+function detectLanguage(text) {
+  // Simple language detection based on character sets
+  const hasHiragana = /[\u3040-\u309F]/.test(text);
+  const hasKatakana = /[\u30A0-\u30FF]/.test(text);
+  const hasKanji = /[\u4E00-\u9FAF]/.test(text);
+  const hasHangul = /[\uAC00-\uD7AF]/.test(text);
+  
+  if (hasHiragana || hasKatakana) return 'ja-JP';
+  if (hasHangul) return 'ko-KR';
+  if (hasKanji) return 'zh-CN';
+  
+  // Default to English
+  return 'en-US';
 }
 
 function escapeHtml(text) {
