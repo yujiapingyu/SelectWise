@@ -73,7 +73,37 @@ const translations = {
     'delete_confirm': 'Are you sure you want to delete this database?',
     'no_databases': 'No databases configured. Click "Add Database" to add one.',
     'select_database': 'Select Database',
-    'last_used': 'Last Used'
+    'last_used': 'Last Used',
+    
+    // History
+    'history': 'History',
+    'search_history': 'Search history...',
+    'clear_all': 'Clear All',
+    'no_history': 'No analysis history yet',
+    'delete_item': 'Delete',
+    'save_again': 'Save to Notion',
+    'view_original': 'View Original',
+    'export_history': 'Export',
+    'import_history': 'Import',
+    'history_policy': 'History Policy',
+    'history_policy_desc': 'Automatically saves your last 100 analysis results. Older records are automatically deleted. Export your history regularly to avoid data loss.',
+    
+    // Statistics
+    'statistics': 'Statistics',
+    'today': 'Today',
+    'this_week': 'This Week',
+    'this_month': 'This Month',
+    'total_analyses': 'Total Analyses',
+    'total_saves': 'Total Saves',
+    'analyses_count': 'analyses',
+    'saves_count': 'saves',
+    
+    // Config Import/Export
+    'export_config': 'Export Config',
+    'import_config': 'Import Config',
+    'config_exported': 'Configuration exported successfully!',
+    'config_imported': 'Configuration imported successfully!',
+    'invalid_config': 'Invalid configuration file'
   },
   
   'zh-CN': {
@@ -147,9 +177,39 @@ const translations = {
     'database_name': '数据库名称',
     'fetching_name': '获取名称中...',
     'delete_confirm': '确定要删除这个数据库吗？',
-    'no_databases': '未配置数据库。点击"添加数据库"以添加。',
+    'no_databases': '未配置数据库。点击“添加数据库”以添加。',
     'select_database': '选择数据库',
-    'last_used': '上次使用'
+    'last_used': '上次使用',
+    
+    // History
+    'history': '历史记录',
+    'search_history': '搜索历史...',
+    'clear_all': '清空所有',
+    'no_history': '还没有分析历史',
+    'delete_item': '删除',
+    'save_again': '保存到 Notion',
+    'view_original': '查看原文',
+    'export_history': '导出',
+    'import_history': '导入',
+    'history_policy': '历史记录策略',
+    'history_policy_desc': '自动保存最近100条分析记录。旧记录会自动删除。请定期导出历史记录以避免数据丢失。',
+    
+    // Statistics
+    'statistics': '统计数据',
+    'today': '今日',
+    'this_week': '本周',
+    'this_month': '本月',
+    'total_analyses': '总分析数',
+    'total_saves': '总保存数',
+    'analyses_count': '次分析',
+    'saves_count': '次保存',
+    
+    // Config Import/Export
+    'export_config': '导出配置',
+    'import_config': '导入配置',
+    'config_exported': '配置导出成功！',
+    'config_imported': '配置导入成功！',
+    'invalid_config': '配置文件无效'
   },
   
   'ja': {
@@ -222,10 +282,40 @@ const translations = {
     'default_database': 'デフォルト',
     'database_name': 'データベース名',
     'fetching_name': '名前を取得中...',
-    'delete_confirm': 'このデータベースを削除してもよろしいですか？',
-    'no_databases': 'データベースが構成されていません。「データベースを追加」をクリックしてください。',
+    'delete_confirm': 'このデータベースを削除しますか？',
+    'no_databases': 'データベースが設定されていません。「データベースを追加」をクリックしてください。',
     'select_database': 'データベースを選択',
-    'last_used': '最後に使用'
+    'last_used': '最後に使用',
+    
+    // History
+    'history': '履歴',
+    'search_history': '履歴を検索...',
+    'clear_all': 'すべてクリア',
+    'no_history': '分析履歴がまだありません',
+    'delete_item': '削除',
+    'save_again': 'Notionに保存',
+    'view_original': '原文を表示',
+    'export_history': 'エクスポート',
+    'import_history': 'インポート',
+    'history_policy': '履歴ポリシー',
+    'history_policy_desc': '最近100件の分析結果を自動保存します。古い記録は自動的に削除されます。データの紛失を防ぐため、定期的に履歴をエクスポートしてください。',
+    
+    // Statistics
+    'statistics': '統計',
+    'today': '今日',
+    'this_week': '今週',
+    'this_month': '今月',
+    'total_analyses': '総分析数',
+    'total_saves': '総保存数',
+    'analyses_count': '回の分析',
+    'saves_count': '回の保存',
+    
+    // Config Import/Export
+    'export_config': '設定をエクスポート',
+    'import_config': '設定をインポート',
+    'config_exported': '設定をエクスポートしました！',
+    'config_imported': '設定をインポートしました！',
+    'invalid_config': '無効な設定ファイル'
   },
   
   'es': {
@@ -297,10 +387,40 @@ const translations = {
     'default_database': 'Predeterminada',
     'database_name': 'Nombre de la Base de Datos',
     'fetching_name': 'Obteniendo nombre...',
-    'delete_confirm': '¿Está seguro de que desea eliminar esta base de datos?',
+    'delete_confirm': '¿Éstá seguro de que desea eliminar esta base de datos?',
     'no_databases': 'No hay bases de datos configuradas. Haga clic en "Agregar Base de Datos" para añadir una.',
     'select_database': 'Seleccionar Base de Datos',
-    'last_used': 'Usado Recientemente'
+    'last_used': 'Usado Recientemente',
+    
+    // History
+    'history': 'Historial',
+    'search_history': 'Buscar en historial...',
+    'clear_all': 'Limpiar Todo',
+    'no_history': 'Aún no hay historial de análisis',
+    'delete_item': 'Eliminar',
+    'save_again': 'Guardar en Notion',
+    'view_original': 'Ver Original',
+    'export_history': 'Exportar',
+    'import_history': 'Importar',
+    'history_policy': 'Política de Historial',
+    'history_policy_desc': 'Guarda automáticamente los últimos 100 resultados de análisis. Los registros antiguos se eliminan automáticamente. Exporte su historial regularmente para evitar pérdida de datos.',
+    
+    // Statistics
+    'statistics': 'Estadísticas',
+    'today': 'Hoy',
+    'this_week': 'Esta Semana',
+    'this_month': 'Este Mes',
+    'total_analyses': 'Análisis Totales',
+    'total_saves': 'Guardados Totales',
+    'analyses_count': 'análisis',
+    'saves_count': 'guardados',
+    
+    // Config Import/Export
+    'export_config': 'Exportar Configuración',
+    'import_config': 'Importar Configuración',
+    'config_exported': '¡Configuración exportada con éxito!',
+    'config_imported': '¡Configuración importada con éxito!',
+    'invalid_config': 'Archivo de configuración inválido'
   },
   
   'fr': {
@@ -376,7 +496,37 @@ const translations = {
     'delete_confirm': 'Êtes-vous sûr de vouloir supprimer cette base de données ?',
     'no_databases': 'Aucune base de données configurée. Cliquez sur "Ajouter une Base de Données" pour en ajouter une.',
     'select_database': 'Sélectionner une Base de Données',
-    'last_used': 'Dernière Utilisation'
+    'last_used': 'Dernière Utilisation',
+    
+    // History
+    'history': 'Historique',
+    'search_history': 'Rechercher dans l’historique...',
+    'clear_all': 'Tout Effacer',
+    'no_history': 'Aucun historique d’analyse pour le moment',
+    'delete_item': 'Supprimer',
+    'save_again': 'Enregistrer dans Notion',
+    'view_original': 'Voir l’Original',
+    'export_history': 'Exporter',
+    'import_history': 'Importer',
+    'history_policy': 'Politique d’Historique',
+    'history_policy_desc': 'Enregistre automatiquement vos 100 derniers résultats d’analyse. Les anciens enregistrements sont automatiquement supprimés. Exportez régulièrement votre historique pour éviter toute perte de données.',
+    
+    // Statistics
+    'statistics': 'Statistiques',
+    'today': 'Aujourd’hui',
+    'this_week': 'Cette Semaine',
+    'this_month': 'Ce Mois',
+    'total_analyses': 'Analyses Totales',
+    'total_saves': 'Enregistrements Totaux',
+    'analyses_count': 'analyses',
+    'saves_count': 'enregistrements',
+    
+    // Config Import/Export
+    'export_config': 'Exporter la Configuration',
+    'import_config': 'Importer la Configuration',
+    'config_exported': 'Configuration exportée avec succès !',
+    'config_imported': 'Configuration importée avec succès !',
+    'invalid_config': 'Fichier de configuration invalide'
   }
 };
 

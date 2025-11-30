@@ -19,8 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('feature-2').textContent = t('popup_feature_2', lang);
   document.getElementById('feature-3').textContent = t('popup_feature_3', lang);
   document.getElementById('feature-4').textContent = t('popup_feature_4', lang);
-  document.getElementById('settingsBtn').textContent = t('open_settings', lang);
+  document.getElementById('settingsBtn').textContent = '⚙️ ' + t('open_settings', lang);
+  document.getElementById('historyBtn').textContent = '📜 ' + t('history', lang);
   document.getElementById('popup-footer').textContent = t('popup_footer', lang);
+});
+
+document.getElementById('historyBtn').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'history.html' });
 });
 
 document.getElementById('settingsBtn').addEventListener('click', () => {

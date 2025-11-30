@@ -11,7 +11,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   if (request.action === 'saveToNotion') {
     saveToNotion(request.data, request.url, request.databaseId)
-      .then(() => sendResponse({ success: true }))
+      .then(async () => {
+        await updateStatistics('save');
+        sendResponse({ success: true });
+      })
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Will respond asynchronously
   }
@@ -89,6 +92,12 @@ async function analyzeTextWithGemini(text, url) {
     }
     
     const result = JSON.parse(jsonText);
+    
+    // Save to history
+    await saveToHistory(text, url, result);
+    
+    // Update statistics
+    await updateStatistics('analyze');
     
     return result;
   } catch (error) {
@@ -353,7 +362,74 @@ async function getNotionDatabaseName(token, databaseId) {
     
     return 'Untitled Database';
   } catch (error) {
-    console.error('Get Database Name Error:', error);
-    throw new Error('Failed to fetch database name');
+    console.error('Error getting Notion database name:', error);
+    throw error;
+  }
+}
+
+// Save analysis to history
+async function saveToHistory(originalText, url, analysisResult) {
+  try {
+    const historyData = await chrome.storage.local.get(['analysisHistory']);
+    let history = historyData.analysisHistory || [];
+    
+    const newEntry = {
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      originalText: originalText,
+      url: url,
+      ...analysisResult
+    };
+    
+    // Add to beginning of array
+    history.unshift(newEntry);
+    
+    // Keep only last 100 entries
+    if (history.length > 100) {
+      history = history.slice(0, 100);
+    }
+    
+    await chrome.storage.local.set({ analysisHistory: history });
+  } catch (error) {
+    console.error('Error saving to history:', error);
+  }
+}
+
+// Update statistics
+async function updateStatistics(action) {
+  try {
+    const statsData = await chrome.storage.local.get(['statistics']);
+    let stats = statsData.statistics || {
+      totalAnalyses: 0,
+      totalSaves: 0,
+      dailyAnalyses: {},
+      dailySaves: {}
+    };
+    
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    if (action === 'analyze') {
+      stats.totalAnalyses++;
+      stats.dailyAnalyses[today] = (stats.dailyAnalyses[today] || 0) + 1;
+    } else if (action === 'save') {
+      stats.totalSaves++;
+      stats.dailySaves[today] = (stats.dailySaves[today] || 0) + 1;
+    }
+    
+    // Clean up old daily data (keep only last 90 days)
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 90);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+    
+    Object.keys(stats.dailyAnalyses).forEach(date => {
+      if (date < cutoffStr) delete stats.dailyAnalyses[date];
+    });
+    Object.keys(stats.dailySaves).forEach(date => {
+      if (date < cutoffStr) delete stats.dailySaves[date];
+    });
+    
+    await chrome.storage.local.set({ statistics: stats });
+  } catch (error) {
+    console.error('Error updating statistics:', error);
   }
 }

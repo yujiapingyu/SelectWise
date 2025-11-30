@@ -32,6 +32,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Update UI with current language
   updateUILanguage(settings.uiLanguage || 'en');
+  
+  // Load statistics
+  await loadStatistics();
+  
+  // Add export/import event listeners
+  document.getElementById('exportConfigBtn').addEventListener('click', handleExportConfig);
+  document.getElementById('importConfigBtn').addEventListener('click', () => {
+    document.getElementById('importConfigInput').click();
+  });
+  document.getElementById('importConfigInput').addEventListener('change', handleImportConfig);
 });
 
 // Save settings
@@ -113,8 +123,26 @@ function updateUILanguage(lang) {
   document.querySelector('label[for="uiLanguage"]').textContent = t('ui_language', lang);
   document.querySelectorAll('.helper-text')[2].textContent = t('ui_language_helper', lang);
 
-  // Notion section
-  document.querySelector('.section-title').textContent = t('notion_integration', lang);
+  // Update section titles
+  const sectionTitles = document.querySelectorAll('.section-title');
+  if (sectionTitles.length >= 3) {
+    sectionTitles[0].textContent = '📊 ' + t('statistics', lang);
+    sectionTitles[1].textContent = '💾 Backup & Restore';
+    sectionTitles[2].textContent = '📝 ' + t('notion_integration', lang);
+  }
+  
+  // Update stat labels
+  const statLabels = document.querySelectorAll('.stat-label');
+  if (statLabels.length >= 4) {
+    statLabels[0].textContent = t('today', lang);
+    statLabels[1].textContent = t('this_week', lang);
+    statLabels[2].textContent = t('this_month', lang);
+    statLabels[3].textContent = t('total_analyses', lang);
+  }
+  
+  // Update backup buttons
+  document.getElementById('exportConfigBtn').textContent = '📤 ' + t('export_config', lang);
+  document.getElementById('importConfigBtn').textContent = '📥 ' + t('import_config', lang);
   
   // Buttons
   document.querySelector('.btn-primary').textContent = t('save_settings', lang);
@@ -123,6 +151,9 @@ function updateUILanguage(lang) {
   
   // Render databases list with new language
   renderDatabasesList();
+  
+  // Reload statistics with new language
+  loadStatistics();
 }
 
 // Database Management Functions
@@ -331,6 +362,123 @@ async function setDefaultDatabase(id) {
   const settings = await chrome.storage.sync.get(['uiLanguage']);
   const lang = settings.uiLanguage || 'en';
   showMessage(t('settings_saved', lang), 'success');
+}
+
+// Load and display statistics
+async function loadStatistics() {
+  const statsData = await chrome.storage.local.get(['statistics']);
+  const stats = statsData.statistics || {
+    totalAnalyses: 0,
+    totalSaves: 0,
+    dailyAnalyses: {},
+    dailySaves: {}
+  };
+  
+  const today = new Date().toISOString().split('T')[0];
+  const todayCount = stats.dailyAnalyses[today] || 0;
+  
+  // Calculate week count
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 7);
+  let weekCount = 0;
+  Object.entries(stats.dailyAnalyses).forEach(([date, count]) => {
+    if (new Date(date) >= weekStart) {
+      weekCount += count;
+    }
+  });
+  
+  // Calculate month count
+  const monthStart = new Date();
+  monthStart.setDate(monthStart.getDate() - 30);
+  let monthCount = 0;
+  Object.entries(stats.dailyAnalyses).forEach(([date, count]) => {
+    if (new Date(date) >= monthStart) {
+      monthCount += count;
+    }
+  });
+  
+  // Update UI
+  document.getElementById('statTodayAnalyses').textContent = todayCount;
+  document.getElementById('statWeekAnalyses').textContent = weekCount;
+  document.getElementById('statMonthAnalyses').textContent = monthCount;
+  document.getElementById('statTotalAnalyses').textContent = stats.totalAnalyses;
+}
+
+// Export configuration
+async function handleExportConfig() {
+  try {
+    const syncData = await chrome.storage.sync.get(null);
+    const localData = await chrome.storage.local.get(['analysisHistory', 'statistics']);
+    
+    const exportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      settings: syncData,
+      history: localData.analysisHistory || [],
+      statistics: localData.statistics || {}
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `selectwise-config-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    
+    const settings = await chrome.storage.sync.get(['uiLanguage']);
+    const lang = settings.uiLanguage || 'en';
+    showMessage(t('config_exported', lang), 'success');
+  } catch (error) {
+    console.error('Export error:', error);
+    showMessage('Export failed: ' + error.message, 'error');
+  }
+}
+
+// Import configuration
+async function handleImportConfig(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const importData = JSON.parse(text);
+    
+    // Validate import data
+    if (!importData.version || !importData.settings) {
+      throw new Error('Invalid configuration file');
+    }
+    
+    // Restore settings
+    await chrome.storage.sync.set(importData.settings);
+    
+    // Restore history and statistics
+    if (importData.history) {
+      await chrome.storage.local.set({ analysisHistory: importData.history });
+    }
+    if (importData.statistics) {
+      await chrome.storage.local.set({ statistics: importData.statistics });
+    }
+    
+    // Reload page
+    const lang = importData.settings.uiLanguage || 'en';
+    showMessage(t('config_imported', lang), 'success');
+    
+    setTimeout(() => {
+      location.reload();
+    }, 1500);
+  } catch (error) {
+    console.error('Import error:', error);
+    const settings = await chrome.storage.sync.get(['uiLanguage']);
+    const lang = settings.uiLanguage || 'en';
+    showMessage(t('invalid_config', lang), 'error');
+  }
+  
+  // Clear file input
+  e.target.value = '';
 }
 
 // Helper function

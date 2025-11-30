@@ -319,6 +319,51 @@
     .modal-buttons button {
       flex: 1;
     }
+    
+    /* Statistics Dashboard */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Backup Actions */
+    .backup-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
@@ -373,6 +418,45 @@
           <option value="fr">Français (French)</option>
         </select>
         <p class="helper-text"><!-- Set by options.js --></p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Statistics Dashboard -->
+      <div class="section-title">📊 Statistics</div>
+      
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-number" id="statTodayAnalyses">0</div>
+          <div class="stat-label">Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statWeekAnalyses">0</div>
+          <div class="stat-label">This Week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statMonthAnalyses">0</div>
+          <div class="stat-label">This Month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statTotalAnalyses">0</div>
+          <div class="stat-label">Total Analyses</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Import/Export Configuration -->
+      <div class="section-title">💾 Backup & Restore</div>
+      
+      <div class="backup-actions">
+        <button type="button" id="exportConfigBtn" class="btn-secondary" style="flex: 1;">
+          📤 Export Config
+        </button>
+        <button type="button" id="importConfigBtn" class="btn-secondary" style="flex: 1;">
+          📥 Import Config
+        </button>
+        <input type="file" id="importConfigInput" accept=".json" style="display: none;">
       </div>
 
       <div class="divider"></div>
