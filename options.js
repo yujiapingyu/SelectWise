@@ -2,6 +2,32 @@
 let currentDatabases = [];
 let editingDatabaseId = null;
 
+// Database template definitions
+const DATABASE_TEMPLATES = {
+  default: {
+    name: 'Default Template',
+    fields: {
+      Name: { type: 'title', aiField: 'original_text' },
+      Translation: { type: 'rich_text', aiField: 'target_translation' },
+      Type: { type: 'select', aiField: 'type' },
+      Analysis: { type: 'rich_text', aiField: 'analysis' },
+      Examples: { type: 'rich_text', aiField: 'examples' },
+      Tags: { type: 'multi_select', aiField: 'tags' },
+      URL: { type: 'url', aiField: 'url' }
+    }
+  },
+  'japanese-vocabulary': {
+    name: 'Japanese Vocabulary',
+    fields: {
+      '単語': { type: 'title', aiField: 'word' },
+      '読み方': { type: 'rich_text', aiField: 'reading' },
+      '意味': { type: 'rich_text', aiField: 'meaning' },
+      'ステータス': { type: 'select', aiField: 'status', options: ['知らない単語・表現', '不慣れ', '普通'] },
+      '例文': { type: 'rich_text', aiField: 'examples' }
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   const settings = await chrome.storage.sync.get([
     'geminiApiKey',
@@ -186,6 +212,7 @@ async function renderDatabasesList() {
       </div>
       <div class="database-info">
         ID: ${db.databaseId.substring(0, 8)}...
+        <span class="database-template">📋 ${DATABASE_TEMPLATES[db.template || 'default']?.name || 'Default'}</span>
       </div>
     </div>
   `).join('');
@@ -223,6 +250,7 @@ async function showDatabaseModal() {
   const tokenInput = document.getElementById('modalToken');
   const databaseIdInput = document.getElementById('modalDatabaseId');
   const nameInput = document.getElementById('modalDatabaseName');
+  const templateSelect = document.getElementById('modalTemplate');
   
   if (editingDatabaseId) {
     const db = currentDatabases.find(d => d.id === editingDatabaseId);
@@ -230,11 +258,13 @@ async function showDatabaseModal() {
     tokenInput.value = db.token;
     databaseIdInput.value = db.databaseId;
     nameInput.value = db.name;
+    templateSelect.value = db.template || 'default';
   } else {
     title.textContent = t('add_database', lang);
     tokenInput.value = '';
     databaseIdInput.value = '';
     nameInput.value = '';
+    templateSelect.value = 'default';
   }
   
   modal.classList.add('show');
@@ -282,6 +312,7 @@ document.getElementById('modalSave').addEventListener('click', async () => {
   const token = document.getElementById('modalToken').value.trim();
   const databaseId = document.getElementById('modalDatabaseId').value.trim();
   const name = document.getElementById('modalDatabaseName').value.trim();
+  const template = document.getElementById('modalTemplate').value;
   const settings = await chrome.storage.sync.get(['uiLanguage']);
   const lang = settings.uiLanguage || 'en';
   
@@ -302,7 +333,8 @@ document.getElementById('modalSave').addEventListener('click', async () => {
       ...currentDatabases[index],
       token,
       databaseId,
-      name: name || 'Untitled Database'
+      name: name || 'Untitled Database',
+      template: template || 'default'
     };
   } else {
     // Add new database
@@ -311,6 +343,7 @@ document.getElementById('modalSave').addEventListener('click', async () => {
       token,
       databaseId,
       name: name || 'Untitled Database',
+      template: template || 'default',
       isDefault: currentDatabases.length === 0 // First database is default
     };
     currentDatabases.push(newDb);

@@ -199,7 +199,7 @@ function handleIconClick(e) {
   });
 }
 
-function showAnalysisPanel() {
+async function showAnalysisPanel() {
   // Remove existing panel if any
   if (analysisPanel) {
     analysisPanel.remove();
@@ -222,18 +222,23 @@ function showAnalysisPanel() {
   container.innerHTML = getPanelHTML();
   shadow.appendChild(container);
   
-  // Position panel
-  const selection = window.getSelection();
-  if (selection.rangeCount > 0) {
-    const rect = selection.getRangeAt(0).getBoundingClientRect();
-    analysisPanel.style.position = 'fixed';
-    
-    // Center the panel on screen
+  analysisPanel.style.position = 'fixed';
+  analysisPanel.style.zIndex = '999999';
+  
+  // Load saved position or use default center position
+  const savedPosition = await chrome.storage.local.get(['panelPosition']);
+  
+  if (savedPosition.panelPosition) {
+    // Use saved position
+    const pos = savedPosition.panelPosition;
+    analysisPanel.style.left = pos.left;
+    analysisPanel.style.top = pos.top;
+  } else {
+    // Center the panel on screen (default)
     const panelWidth = 480;
     const panelHeight = 600;
     analysisPanel.style.left = `${(window.innerWidth - panelWidth) / 2}px`;
     analysisPanel.style.top = `${Math.max(20, (window.innerHeight - panelHeight) / 2)}px`;
-    analysisPanel.style.zIndex = '999999';
   }
   
   document.body.appendChild(analysisPanel);
@@ -246,7 +251,7 @@ function showAnalysisPanel() {
   // Add event listeners
   setupPanelEventListeners(shadow);
   
-  // Make panel draggable
+  // Make panel draggable and save position on drag
   makeDraggable(analysisPanel, shadow.querySelector('.panel-header'));
 }
 
@@ -718,6 +723,13 @@ function makeDraggable(element, handle) {
   function closeDragElement() {
     document.onmouseup = null;
     document.onmousemove = null;
+    
+    // Save the panel position to chrome.storage.local
+    const position = {
+      left: element.style.left,
+      top: element.style.top
+    };
+    chrome.storage.local.set({ panelPosition: position });
   }
 }
 
@@ -817,11 +829,28 @@ async function populateDatabaseSelector() {
     return;
   }
   
-  // Find default or last used database
-  let selectedId = settings.lastUsedDatabaseId;
-  if (!selectedId || !databases.find(db => db.id === selectedId)) {
+  // Priority: last used > default > first database
+  let selectedId = null;
+  
+  // 1. Try last used database
+  if (settings.lastUsedDatabaseId) {
+    const lastUsedDb = databases.find(db => db.id === settings.lastUsedDatabaseId);
+    if (lastUsedDb) {
+      selectedId = lastUsedDb.id;
+    }
+  }
+  
+  // 2. Fallback to default database
+  if (!selectedId) {
     const defaultDb = databases.find(db => db.isDefault);
-    selectedId = defaultDb ? defaultDb.id : databases[0].id;
+    if (defaultDb) {
+      selectedId = defaultDb.id;
+    }
+  }
+  
+  // 3. Fallback to first database
+  if (!selectedId) {
+    selectedId = databases[0].id;
   }
   
   // Populate options

@@ -1,5 +1,31 @@
 // Background service worker for SelectWise
 
+// Database template definitions
+const DATABASE_TEMPLATES = {
+  default: {
+    name: 'Default Template',
+    fields: {
+      Name: { type: 'title', aiField: 'original_text' },
+      Translation: { type: 'rich_text', aiField: 'target_translation' },
+      Type: { type: 'select', aiField: 'type' },
+      Analysis: { type: 'rich_text', aiField: 'analysis' },
+      Examples: { type: 'rich_text', aiField: 'examples' },
+      Tags: { type: 'multi_select', aiField: 'tags' },
+      URL: { type: 'url', aiField: 'url' }
+    }
+  },
+  'japanese-vocabulary': {
+    name: 'Japanese Vocabulary',
+    fields: {
+      '単語': { type: 'title', aiField: 'word' },
+      '読み方': { type: 'rich_text', aiField: 'reading' },
+      '意味': { type: 'rich_text', aiField: 'japanese_meaning' },
+      'ステータスウェア': { type: 'select', aiField: 'status', defaultOption: '知らない単語・表現' },
+      '例文': { type: 'rich_text', aiField: 'example_sentence' }
+    }
+  }
+};
+
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'analyzeText') {
@@ -149,7 +175,12 @@ JSON Schema:
   "analysis": "detailed analysis in ${targetLanguage}",
   "examples": ["example 1 in source language", "example 2 in source language"],
   "tags": ["#tag1 in source language", "#tag2", "#tag3"],
-  "related_vocabulary": ["word1 in source language", "word2", "word3"]
+  "related_vocabulary": ["word1 in source language", "word2", "word3"],
+  "word": "for Japanese text only: the word/phrase itself",
+  "reading": "for Japanese text only: Furigana reading (e.g., たべる, べんきょう)",
+  "meaning": "for Japanese text only: concise meaning in ${targetLanguage}",
+  "japanese_meaning": "for Japanese text only: explanation in JAPANESE (日本語で説明)",
+  "example_sentence": "for Japanese text only: ONE example sentence using N1-N3 grammar, with target word/conjugation wrapped in **bold** (e.g., 毎日**勉強して**います)"
 }
 
 Guidelines:
@@ -163,6 +194,17 @@ Guidelines:
     '1-2 similar expressions or paraphrases. DO NOT include pronunciation in examples'}
 - tags: Write in the SOURCE language (same language as original_text). 3-5 relevant tags describing the text (e.g., #商务, #日常, #動詞, #積極的)
 - related_vocabulary: Write in the SOURCE language. 3-5 related words or synonyms. DO NOT include pronunciation
+- word: (Japanese only) The word/phrase as written (same as original_text)
+- reading: (Japanese only) Hiragana/Katakana reading WITHOUT kanji, e.g., たべる, べんきょう
+- meaning: (Japanese only) Brief definition in ${targetLanguage}
+- japanese_meaning: (Japanese only) Explanation in JAPANESE language (日本語で単語の意味を説明してください)
+- example_sentence: (Japanese only) Create ONE example sentence that:
+  * Uses N1-N3 level grammar pattern (e.g., ～ている, ～たことがある, ～ばかり, ～ておく, ～ように, etc.)
+  * Wraps the target word in **asterisks** for bold formatting
+  * If the word is conjugated (verb/adjective), wrap the ENTIRE conjugated form in **asterisks**
+  * Example: 毎日日本語を**勉強している** (not 毎日日本語を勉強している)
+  * Example: このケーキは**美味しかった** (not このケーキは美味しかった)
+  * Keep the sentence natural and practical
 
 Important rules:
 - Examples MUST be clean sentences WITHOUT any pronunciation annotations
@@ -173,6 +215,43 @@ Important rules:
 Return ONLY the JSON object, no explanations or markdown.`;
 
   return basePrompt;
+}
+
+// Helper function to convert markdown bold (**text**) to Notion rich text format
+function parseMarkdownToRichText(text) {
+  if (!text) return [];
+  
+  const parts = [];
+  let currentIndex = 0;
+  const boldRegex = /\*\*([^*]+)\*\*/g;
+  let match;
+  
+  while ((match = boldRegex.exec(text)) !== null) {
+    // Add text before the bold part
+    if (match.index > currentIndex) {
+      parts.push({
+        text: { content: text.substring(currentIndex, match.index) }
+      });
+    }
+    
+    // Add the bold part
+    parts.push({
+      text: { content: match[1] },
+      annotations: { bold: true }
+    });
+    
+    currentIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (currentIndex < text.length) {
+    parts.push({
+      text: { content: text.substring(currentIndex) }
+    });
+  }
+  
+  // If no bold found, return plain text
+  return parts.length > 0 ? parts : [{ text: { content: text } }];
 }
 
 // Save to Notion
@@ -199,55 +278,90 @@ async function saveToNotion(data, url, databaseId) {
     throw new Error(errorMsg);
   }
   
-  // Determine type
+  // Get database template
+  const template = DATABASE_TEMPLATES[database.template || 'default'];
+  if (!template) {
+    throw new Error('Invalid database template');
+  }
+  
+  // Determine type for default template
   const isWord = data.original_text.split(/\s+/).length <= 3;
   const type = isWord ? 'Word' : 'Sentence';
   
-  // Build Notion page properties
-  const properties = {
-    Name: {
-      title: [
-        {
-          text: {
-            content: data.original_text.substring(0, 100) // Notion title limit
-          }
-        }
-      ]
-    }
+  // Prepare data with all possible fields
+  const aiData = {
+    original_text: data.original_text,
+    target_translation: data.target_translation,
+    type: type,
+    analysis: data.analysis,
+    examples: data.examples?.join('\n'),
+    tags: data.tags,
+    url: url,
+    // Japanese vocabulary specific fields
+    word: data.word || data.original_text,
+    reading: data.reading || '',
+    meaning: data.meaning || data.target_translation,
+    japanese_meaning: data.japanese_meaning || '',
+    example_sentence: data.example_sentence || (data.examples && data.examples[0]) || '',
+    status: data.status || '知らない単語・表現',
   };
   
-  // Add optional properties if they exist in the database
-  // Note: These property names should match your Notion database schema
-  const optionalProperties = {
-    Translation: data.target_translation,
-    Type: type,
-    Analysis: data.analysis,
-    Examples: data.examples?.join('\n'),
-    URL: url
-  };
+  // Build Notion page properties based on template
+  const properties = {};
   
-  // Try to add optional properties
-  for (const [key, value] of Object.entries(optionalProperties)) {
-    if (value) {
-      if (key === 'Type') {
-        properties[key] = { select: { name: value } };
-      } else if (key === 'URL') {
-        properties[key] = { url: value };
-      } else {
-        properties[key] = { 
-          rich_text: [{ text: { content: value.substring(0, 2000) } }] 
+  for (const [fieldName, fieldConfig] of Object.entries(template.fields)) {
+    const value = aiData[fieldConfig.aiField];
+    
+    if (!value && fieldConfig.type !== 'title') continue; // Skip empty non-title fields
+    
+    switch (fieldConfig.type) {
+      case 'title':
+        properties[fieldName] = {
+          title: [{
+            text: { content: (value || 'Untitled').substring(0, 100) }
+          }]
         };
-      }
+        break;
+        
+      case 'rich_text':
+        if (value) {
+          // Parse markdown bold syntax (**text**) to Notion rich text format
+          const richTextParts = parseMarkdownToRichText(value.substring(0, 2000));
+          properties[fieldName] = {
+            rich_text: richTextParts
+          };
+        }
+        break;
+        
+      case 'select':
+        if (value) {
+          properties[fieldName] = {
+            select: { name: value }
+          };
+        } else if (fieldConfig.defaultOption) {
+          // Use default option if no value provided
+          properties[fieldName] = {
+            select: { name: fieldConfig.defaultOption }
+          };
+        }
+        break;
+        
+      case 'multi_select':
+        if (Array.isArray(value) && value.length > 0) {
+          properties[fieldName] = {
+            multi_select: value.map(tag => ({
+              name: tag.replace('#', '').substring(0, 100)
+            }))
+          };
+        }
+        break;
+        
+      case 'url':
+        if (value) {
+          properties[fieldName] = { url: value };
+        }
+        break;
     }
-  }
-  
-  // Add tags as multi-select
-  if (data.tags && data.tags.length > 0) {
-    properties.Tags = {
-      multi_select: data.tags.map(tag => ({ 
-        name: tag.replace('#', '').substring(0, 100) 
-      }))
-    };
   }
   
   // Create Notion page

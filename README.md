@@ -67,7 +67,11 @@ SelectWise 是一个 Chrome 浏览器插件，可以使用 Google 的 Gemini AI 
 
 #### 步骤 2：创建 Notion 数据库
 
-在 Notion 中创建一个数据库，包含以下属性：
+SelectWise 支持两种数据库模板，可根据你的需求选择：
+
+##### 模板 1：Default Template（默认模板 - 通用翻译与分析）
+
+适用于通用的文本翻译和学习场景。
 
 | 属性名称 | 类型 | 必需 | 说明 |
 |---------|------|------|------|
@@ -82,6 +86,30 @@ SelectWise 是一个 Chrome 浏览器插件，可以使用 Google 的 Gemini AI 
 **Type 属性的选项**：
 - `Word`（单词）
 - `Sentence`（句子）
+
+##### 模板 2：Japanese Vocabulary（日语词汇模板）
+
+专为日语学习设计，包含发音、日语释义和学习状态。
+
+| 属性名称 | 类型 | 必需 | 说明 |
+|---------|------|------|------|
+| **単語** | Title | ✅ | 日语单词/短语 |
+| **読み方** | Text | ✅ | 假名读音（如：たべる、べんきょう） |
+| **意味** | Text | ✅ | **日语解释**（AI用日语解释单词含义） |
+| **ステータスウェア** | Select | ✅ | 学习状态（默认：知らない単語・表現） |
+| **例文** | Text | ✅ | **一句**N1-N3语法例句，单词用粗体标注 |
+
+**ステータスウェア 属性的选项**：
+- `知らない単語・表現`（不认识的单词/表达）
+- `不慣れ`（不熟悉）
+- `普通`（一般）
+
+> 💡 **例句特色**：
+> - 自动使用N1-N3级别的语法结构
+> - 目标单词和动词变形会自动加粗显示
+> - 示例：毎日日本語を**勉強している**（加粗显示动词变形）
+
+> 💡 **提示**：在 SelectWise 设置页面添加数据库时，可以选择对应的模板类型。AI 会根据模板自动调整分析输出格式。
 
 #### 步骤 3：共享数据库
 
@@ -108,12 +136,24 @@ SelectWise 是一个 Chrome 浏览器插件，可以使用 Google 的 Gemini AI 
 #### 步骤 5：在插件中配置
 
 1. 打开 SelectWise 设置页面
-2. 填写：
+2. 点击「+ Add Database」添加新数据库
+3. 填写以下信息：
    - **Notion Integration Token**: 粘贴 Token
    - **Notion Database ID**: 粘贴 Database ID（32位，无连字符）
-3. 保存设置
+   - **Database Name**: 自动从 Notion 获取
+   - **Database Template**: 选择对应的模板类型
+     - `Default Template`：适用于通用翻译场景
+     - `Japanese Vocabulary`：适用于日语单词学习
+4. 点击「Save Database」保存
+
+> 💡 **提示**：
+> - 可以添加多个数据库，分别使用不同的模板
+> - 第一个添加的数据库会自动设为默认数据库
+> - 保存时可以选择使用哪个数据库
 
 ## 🚀 使用方法
+
+### 基本使用流程
 
 1. **选中文本**
    - 在任何网页上用鼠标选中单词、短语或句子
@@ -139,6 +179,52 @@ SelectWise 是一个 Chrome 浏览器插件，可以使用 Google 的 Gemini AI 
    - ✅ 标签（Tags）
    - ✅ 例句（Examples）
    - ✅ 相关词汇（Related Vocabulary）
+
+### 使用场景示例
+
+#### 场景 1：通用翻译学习（使用 Default Template）
+
+适合学习任何语言的单词、句子，包括英语、西班牙语、法语等。
+
+```
+选中文本：「procrastinate」
+AI 分析输出 → 保存到 Default Template 数据库：
+  - 单語：procrastinate
+  - Translation：拖延、延迟
+  - Type：Word
+  - Analysis：动词，指推迟或延迟原本应该做的事情...
+  - Examples：I tend to procrastinate when I have a lot of work.
+  - Tags：#verb, #negative, #time_management
+```
+
+#### 场景 2：日语单词学习（使用 Japanese Vocabulary Template）
+
+专为日语学习者设计，自动提取假名读音，**使用日语解释单词**，并生成带语法的例句。
+
+```
+选中文本：「勉強」
+AI 分析输出 → 保存到 Japanese Vocabulary 数据库：
+  - 単語：勉強
+  - 読み方：べんきょう
+  - 意味：学問や技術などを学ぶこと（日语解释）
+  - ステータス：知らない単語・表現（默认值，可在Notion中修改）
+  - 例文：毎日日本語を**勉強している**（使用N3语法〜ている，单词加粗）
+```
+
+> 💡 **注意**：
+> - Japanese Vocabulary 模板中，「意味」字段是**用日语解释单词含义**，这样更符合日语学习的沉浸式环境
+> - 例文会自动使用N1-N3级别的语法，并将目标单词和动词变形**加粗**显示，方便复习
+> - 如果需要中文/英文翻译，请使用 Default Template
+
+#### 场景 3：多数据库管理
+
+你可以同时创建多个数据库，分别用于不同的学习场景：
+
+- **数据库 1**：English Vocabulary（Default Template）
+- **数据库 2**：日本語単語帳（Japanese Vocabulary）
+- **数据库 3**：Spanish Phrases（Default Template）
+
+保存时选择对应的数据库即可。
 
 ## 🧠 工作原理
 

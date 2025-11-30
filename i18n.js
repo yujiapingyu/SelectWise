@@ -105,6 +105,12 @@ const translations = {
     'config_imported': 'Configuration imported successfully!',
     'invalid_config': 'Invalid configuration file',
     
+    // Database Templates
+    'database_template': 'Database Template',
+    'template_default': 'Default Template (Translation & Analysis)',
+    'template_japanese_vocabulary': 'Japanese Vocabulary (単語・読み方・意味)',
+    'template_description': 'Choose the template that matches your Notion database structure',
+    
     // Voice/Speech
     'play_audio': 'Play Audio',
     'pause_audio': 'Pause',
@@ -216,7 +222,13 @@ const translations = {
     'import_config': '导入配置',
     'config_exported': '配置导出成功！',
     'config_imported': '配置导入成功！',
-    'invalid_config': '配置文件无效',
+    'invalid_config': '无效的配置文件',
+    
+    // Database Templates
+    'database_template': '数据库模板',
+    'template_default': '默认模板（翻译与分析）',
+    'template_japanese_vocabulary': '日语词汇模板（单語・読み方・意味）',
+    'template_description': '选择与你的Notion数据库结构匹配的模板',
     
     // Voice/Speech
     'play_audio': '播放语音',
@@ -327,9 +339,15 @@ const translations = {
     // Config Import/Export
     'export_config': '設定をエクスポート',
     'import_config': '設定をインポート',
-    'config_exported': '設定をエクスポートしました！',
-    'config_imported': '設定をインポートしました！',
+    'config_exported': '設定がエクスポートされました！',
+    'config_imported': '設定がインポートされました！',
     'invalid_config': '無効な設定ファイル',
+    
+    // Database Templates
+    'database_template': 'データベーステンプレート',
+    'template_default': 'デフォルトテンプレート（翻訳と分析）',
+    'template_japanese_vocabulary': '日本語語彙テンプレート（単語・読み方・意味）',
+    'template_description': 'Notionデータベースの構造に合致するテンプレートを選択',
     
     // Voice/Speech
     'play_audio': '音声再生',
@@ -441,7 +459,13 @@ const translations = {
     'import_config': 'Importar Configuración',
     'config_exported': '¡Configuración exportada con éxito!',
     'config_imported': '¡Configuración importada con éxito!',
-    'invalid_config': 'Archivo de configuración inválido',
+    'invalid_config': 'Archivo de configuración no válido',
+    
+    // Database Templates
+    'database_template': 'Plantilla de Base de Datos',
+    'template_default': 'Plantilla Predeterminada (Traducción y Análisis)',
+    'template_japanese_vocabulary': 'Vocabulario Japonés (単語・読み方・意味)',
+    'template_description': 'Elija la plantilla que coincida con la estructura de su base de datos de Notion',
     
     // Voice/Speech
     'play_audio': 'Reproducir Audio',
@@ -552,9 +576,15 @@ const translations = {
     // Config Import/Export
     'export_config': 'Exporter la Configuration',
     'import_config': 'Importer la Configuration',
-    'config_exported': 'Configuration exportée avec succès !',
-    'config_imported': 'Configuration importée avec succès !',
+    'config_exported': 'Configuration exportée avec succès!',
+    'config_imported': 'Configuration importée avec succès!',
     'invalid_config': 'Fichier de configuration invalide',
+    
+    // Database Templates
+    'database_template': 'Modèle de Base de Données',
+    'template_default': 'Modèle Par Défaut (Traduction et Analyse)',
+    'template_japanese_vocabulary': 'Vocabulaire Japonais (単語・読み方・意味)',
+    'template_description': 'Choisissez le modèle qui correspond à la structure de votre base de données Notion',
     
     // Voice/Speech
     'play_audio': 'Lire l’Audio',
