@@ -181,40 +181,6 @@ SelectWise 是一个 Chrome 浏览器插件，可以使用 Google 的 Gemini AI 
 - 日语使用振假名（ふりがな）
 - 其他语言使用 IPA 音标
 
-## 🛠️ 技术栈
-
-- **Manifest V3**: Chrome 扩展最新标准
-- **Vanilla JavaScript**: 无框架依赖，轻量高效
-- **Shadow DOM**: 完全样式隔离
-- **Gemini 2.0 Flash Exp**: Google 最新 AI 模型
-- **Chrome Storage API**: 跨设备同步设置
-- **Notion API**: 数据持久化
-- **i18n 系统**: 自定义多语言支持
-- **Markdown Parser**: 简单高效的文本渲染
-
-## 📁 项目结构
-
-## 📁 项目结构
-
-```
-SelectWise/
-├── manifest.json          # 插件配置文件（Manifest V3）
-├── background.js          # Service Worker（API 调用处理）
-├── content.js             # 内容脚本（文本选择、UI 渲染）
-├── i18n.js               # 多语言翻译系统
-├── markdown.js           # Markdown 渲染器
-├── options.html          # 设置页面
-├── options.js            # 设置逻辑
-├── popup.html            # 扩展弹窗
-├── popup.js              # 弹窗逻辑
-├── icons/                # 插件图标
-│   ├── icon.svg          # 源文件
-│   ├── icon16.png        # 16x16 工具栏图标
-│   ├── icon48.png        # 48x48 管理页图标
-│   └── icon128.png       # 128x128 应用商店图标
-└── README.md             # 项目文档
-```
-
 ## 🔍 故障排除
 
 ### Gemini API 相关
@@ -331,19 +297,6 @@ SelectWise/
    - **后台脚本**：扩展页面 → 查看视图 → Service worker
    - **设置页面**：设置页面按 F12 → Console
 
-### 调试技巧
-
-```javascript
-// 在 background.js 中添加日志
-console.log('API Response:', response);
-
-// 在 content.js 中调试
-console.log('Selected text:', selectedText);
-
-// 测试 i18n
-console.log(t('panel_title', 'zh-CN'));
-```
-
 ## 📝 更新日志
 
 ### 最新版本特性
@@ -387,4 +340,3 @@ console.log(t('panel_title', 'zh-CN'));
 
 **注意**：此插件需要有效的网络连接和 Gemini API key 才能正常工作。Notion 集成为可选功能。
 
-**Enjoy learning with SelectWise! 🚀**
